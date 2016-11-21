@@ -87,53 +87,83 @@ define([
             mapDomElement.parentElement.replaceChild(this.getContainer(), mapDomElement);
         },
 
-        
-
-        addMarkerToMap: function (marker) {
-            if (marker) {
-                marker.addTo(this);
-            }
-        },
-
-        removeMarkerFromMap: function (marker) {
-            if (marker) {
-                this.removeLayer(marker);
-            }
-        },
-
-        updateMarkerIcon: function(marker, icon) {
-            if (marker && icon) {
-                marker.setIcon(icon);
-            }
-        },
-
-        updateMarkerLatLon: function(marker, lat,lon) {
-            if (marker && lat&&lon) {
-                marker.setLatLng([lat,lon]);
-            }
-        },
-        
-        createMarker: function(lat, long, icon) {
-            if (lat && long && icon) {
-                return L.marker([lat, long], {icon: icon})
-            }
-
-            return undefined;
-        },
-
-        createMarkerWithPopUp: function(lat, long, icon, text, eventHandler) {
-            var marker = this.createMarker(lat, long, icon);
-
-            if (!marker) {
-                return undefined;
-            }
-
-            marker.bindPopup(text, eventHandler);
-            return marker;
-        },
-        
         refresh: function() {
             this.invalidateSize();
+        },
+
+        //Story Marker Handling
+        //#####################
+
+        leafletMarkers: {},
+
+        createMarker: function(storyMarker) {
+            var marker = L.marker( [ storyMarker.get("lat"), storyMarker.get("lon") ]
+                                 , { icon: storyMarker.get("icon") }
+                                 );
+            if(storyMarker.get("popupContent")) {
+                marker.bindPopup(storyMarker.get("popupContent"));
+            }
+
+            return marker;
+        },
+
+        /* Get the Leaflet marker current associated with the story marker, or creates a new one.
+        */
+        getOrCreateLeafletMarker: function(storyMarker) {
+            return this.leafletMarkers[storyMarker] || this.createMarker(storyMarker);
+        },
+
+        /* Add a leaflet marker and watch the Story marker for changes
+        */
+        addStoryMarkerToMap: function (storyMarker) {
+            if (!storyMarker) { return; }
+            //Get provides protection against creating more than 1 marker per Story Marker
+            var leafletMarker = this.getOrCreateLeafletMarker(storyMarker);
+            this.leafletMarkers[storyMarker] = leafletMarker;
+            
+            console.log("Banana: Adding Story marker to Map");
+
+            leafletMarker.addTo(this);
+            this.watchStoryMarker(storyMarker);
+        },
+
+        /* Remove the leaflet marker and stop watching the Story Marker for changes
+        */
+        removeStoryMarkerFromMap: function (storyMarker) {
+            if (!storyMarker) { return; }
+            if (leafletMarkers[storyMarker]) {
+                this.removeLayer(storyMarker);
+            }
+        },
+
+        /* Watches the story marker for changes that would affect the leaflet marker.
+        */
+        watchStoryMarker: function(storyMarker) {
+            this.updateMarkerIcon();
+            storyMarker.on("change:icon", this.updateMarkerIcon, this);
+
+            this.updateMarkerVisibility();
+            storyMarker.on("change:visible", this.updateMarkerVisibility, this);
+
+            //Add Lat/Lon?
+        },
+
+        unwatchStoryMarker: function(storyMarker) {
+            storyMarker.off(null, null, this);
+        },
+
+        updateMarkerVisibility: function(storyMarker, visibility) {
+            var leafletMarker = this.getOrCreateLeafletMarker(storyMarker);
+            //Opacity may not work... can use "map.hasLayer" instead?
+            var opacity = visibility? 1 : 0;
+            leafletMarker.setOpacity(opacity);
+        },
+
+        updateMarkerIcon: function(storyMarker, newIcon) {
+            //Handles the case when it's set to null/undefined in the model.
+            if(!newIcon) { return; }
+            var leafletMarker = this.getOrCreateLeafletMarker(storyMarker);
+            leafletMarker.setIcon(newIcon);
         }
     });
 

@@ -52,27 +52,52 @@ define([
         parse: true,
 
         initialize: function () {
-            this.set({
-                marker: undefined,
-                type: undefined,
-                lat: undefined,
-                lon: undefined
-            });
+            this.set( { icon: undefined
+                      , type: undefined
+                      , lat: undefined
+                      , lon: undefined
+                      , visible: false
+                      , popupContent: undefined
+                      }
+                    );
         },
 
-        setMap: function(map) {
-          this.map = map;
+        //Maybe this should store cardState, rather than having it passed on every event...
+        updateDetails: function(cardState) {
+            this.set( { icon: iconFactory.getIconForCardState(cardState)
+                      , visible: cardState.get("visible")
+                      }
+                    );
         },
 
-        buildMakerFromCard: function (card) {
-            if (card.id != this.id) {
-                return;
+        watchCardState: function(cardState) {
+            this.updateDetails(cardState);
+            cardState.on(cardState.eventCardStateModified, this.updateDetails, this);
+        },
+
+        unwatchCardState: function(cardState) {
+            cardState.off(cardState.eventCardStateModified, this.updateDetails, this);
+        },
+
+        initMarkerUsingCard: function (card) {
+            var loc = card.getLocation();
+            
+            if(!loc) {
+                return undefined;
             }
 
-            this.set({marker: this.createMarker(card)});
-            this.set({type: this.getMarkerTypeFromCard(card)});
+            this.set( { type: loc.type
+                      , icon: iconRepository.redIcon
+                      , lat: loc.lat
+                      , lon: loc.lon
+                      , popupContent: this.getPopupTextFromCard(card)
+                      }
+                    );
+            
+            return this;
         },
 
+        /*
         createMarker: function (card) {
             var type = this.getMarkerTypeFromCard(card);
 
@@ -81,17 +106,9 @@ define([
             }
 
             return undefined
-        },
+        },*/
 
-        getMarkerTypeFromCard: function (card) {
-            if (!card.get('hint').location || card.get('hint').location.length == 0) {
-                return undefined;
-            }
-
-            return card.get('hint').location[0].type;
-        },
-
-        createPointMarkerOnMap: function (card) {
+        /*createPointMarkerOnMap: function (card) {
             var lat = card.get('hint').location[0].lat;
             var long = card.get('hint').location[0].lon;
 
@@ -100,14 +117,15 @@ define([
             }
 
             return this.map.createMarkerWithPopUp(lat, long, iconRepository.redIcon, this.getPopUpTextFromCard(card), null);
-        },
+        },*/
 
-        getPopUpTextFromCard: function (card) {
+        getPopupTextFromCard: function (card) {
             return "<p><b>" + _.escape(card.getLabel()) + "</b></p>"
                 + "<p>" + _.escape(card.getTeaser()) + "</p>"
                 + "<p>" + _.escape(card.getHintDirection()) + "</p>";
         },
 
+        //THIS IS THE BIGGY - Used a lot externally.
         updateMarkerFromCardState: function (cardState) {
             if (this.id != cardState.id) {
                 return;
@@ -122,6 +140,7 @@ define([
             }
         },
 
+        /*
         updatePointMarkerOnMap: function (cardState) {
             if (!cardState) {
                 return;
@@ -138,11 +157,15 @@ define([
                 this.map.addMarkerToMap(this.get('marker'));
             }
         },
+        */
 
+        /*
         removeFromMap: function () {
             this.map.removeMarkerFromMap(this.get('marker'));
         },
+        */
 
+        //ALSO EXTERNAL
         destroy: function() {
             this.removeFromMap();
             if (this.get('marker')) {

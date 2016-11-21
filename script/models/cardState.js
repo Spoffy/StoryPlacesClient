@@ -46,6 +46,7 @@ define([
     CardState = Backbone.Model.extend({
 
         // This works as this object's ID is the same as that of the card it is representing
+        eventCardStateModified: "cardStateModified",
 
         initialize: function () {
             this.set({
@@ -80,6 +81,7 @@ define([
 
             if (this.get('visible') != this.get('previousVisible') || this.get('suitable') != this.get('previousSuitable')) {
                 this.set({modified: true});
+                this.trigger(this.eventCardStateModified, this);
             }
         },
 

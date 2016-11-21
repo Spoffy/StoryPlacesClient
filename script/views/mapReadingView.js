@@ -71,8 +71,22 @@ define([
         newReading: function (reading) {
             this.markers = new MarkerCollection();
             this.reading = reading;
-            this.reading.cardStates.on(this.reading.cardStates.eventCardStatesModified, this.cardStatesModifiedEvent, this);
-            this.renderAllMarkers();
+            //Create a new marker for each card state and add it to the markers collection.
+            //The issue here is the card states are taking time to populate, it's not all ready now.
+            console.log("Banana: This is totally happening");
+            this.reading.cardStates.on("add", function () { console.log("Banana: Yes!"); });
+            this.reading.cardStates.each( 
+                function( cardState ) {
+                    console.log("Banana: Pretty please!");
+                    var storyMarker = this.createMarkerFromCardState(cardState);
+                    console.log("Banana: Card State Loop");
+                    this.mapElement.addStoryMarkerToMap(storyMarker);
+                }
+              , this
+              );
+                
+            //this.reading.cardStates.on(this.reading.cardStates.eventCardStatesModified, this.cardStatesModifiedEvent, this);
+            //this.renderAllMarkers();
         },
         
         tearDown: function () {
@@ -80,20 +94,24 @@ define([
             this.markers.destroy();
         },
 
+        /*
         renderAllMarkers: function () {
             var that = this;
             this.reading.cardStates.each(function (cardState) {
-                that.updateMarkerFromCardState(cardState);
+                //that.updateMarkerFromCardState(cardState);
             });            
         },
+        */
 
+        /*
         cardStatesModifiedEvent: function (modifiedCardStates) {
             var that = this;
             _.each(modifiedCardStates, function (cardState) {
                 that.updateMarkerFromCardState(cardState);
             });
-        },
+        },*/
 
+        /*
         getMarkerFromCardState: function (cardState) {
             var marker = this.markers.get(cardState.id);
 
@@ -103,24 +121,28 @@ define([
 
             return this.createMarkerFromCardState(cardState);
         },
+        */
 
         createMarkerFromCardState: function (cardState) {
             var card = this.reading.getStory().deck().get(cardState.id);
             var marker = this.markers.add({id: card.id});
-            marker.setMap(this.mapElement);
-            marker.buildMakerFromCard(card);
+
+            //Assign properties from the card to the marker, then watch for state changes.
+            marker.initMarkerUsingCard(card);
+            marker.watchCardState(cardState);
 
             return marker;
 
         },
 
+        /*
         updateMarkerFromCardState: function (cardState) {
             var marker = this.getMarkerFromCardState(cardState);
 
             if (marker) {
                 marker.updateMarkerFromCardState(cardState);
             }
-        }, 
+        },*/ 
         
         refresh: function() {
             this.mapElement.refresh();
