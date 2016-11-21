@@ -60,6 +60,14 @@ define([
 
         getHintDirection: function () {
             return (this.get('hint') && this.get('hint').direction) ? this.get('hint').direction : "";
+        },
+
+        getLocation: function() {
+            return ( this.get('hint') 
+                  && this.get('hint').location 
+                  && this.get('hint').location.length > 0
+                   )
+                   ? this.get('hint').location[0] : null;
         }
     });
 
