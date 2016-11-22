@@ -139,10 +139,10 @@ define([
         /* Watches the story marker for changes that would affect the leaflet marker.
         */
         watchStoryMarker: function(storyMarker) {
-            this.updateMarkerIcon();
+            this.updateMarkerIcon(storyMarker, storyMarker.get("icon"));
             storyMarker.on("change:icon", this.updateMarkerIcon, this);
 
-            this.updateMarkerVisibility();
+            this.updateMarkerVisibility(storyMarker, storyMarker.get("visible"));
             storyMarker.on("change:visible", this.updateMarkerVisibility, this);
 
             //Add Lat/Lon?
@@ -155,8 +155,8 @@ define([
         updateMarkerVisibility: function(storyMarker, visibility) {
             var leafletMarker = this.getOrCreateLeafletMarker(storyMarker);
             //Opacity may not work... can use "map.hasLayer" instead?
-            var opacity = visibility? 1 : 0;
-            leafletMarker.setOpacity(opacity);
+            //var opacity = visibility? 1 : 0;
+            //leafletMarker.setOpacity(opacity);
         },
 
         updateMarkerIcon: function(storyMarker, newIcon) {
