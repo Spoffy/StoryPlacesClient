@@ -73,17 +73,19 @@ define([
             this.reading = reading;
             //Create a new marker for each card state and add it to the markers collection.
             //The issue here is the card states are taking time to populate, it's not all ready now.
-            console.log("Banana: This is totally happening");
-            this.reading.cardStates.on("add", function () { console.log("Banana: Yes!"); });
-            this.reading.cardStates.each( 
-                function( cardState ) {
-                    console.log("Banana: Pretty please!");
-                    var storyMarker = this.createMarkerFromCardState(cardState);
-                    console.log("Banana: Card State Loop");
-                    this.mapElement.addStoryMarkerToMap(storyMarker);
-                }
-              , this
-              );
+
+            //Add an event for if a card-state is added mid-story.
+
+            this.reading.cardStates.each(
+                    function( cardState ) {
+                        if(!reading.getCardFromStory(cardState.get("id")).getLocation()) {
+                            return null;
+                        }
+                        var storyMarker = this.createMarkerFromCardState(cardState);
+                        this.mapElement.addStoryMarkerToMap(storyMarker);
+                    }
+                  , this
+                );
                 
             //this.reading.cardStates.on(this.reading.cardStates.eventCardStatesModified, this.cardStatesModifiedEvent, this);
             //this.renderAllMarkers();
