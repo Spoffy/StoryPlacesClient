@@ -110,7 +110,15 @@ define([
         /* Get the Leaflet marker current associated with the story marker, or creates a new one.
         */
         getOrCreateLeafletMarker: function(storyMarker) {
-            return this.leafletMarkers[storyMarker] || this.createMarker(storyMarker);
+            return this.leafletMarkers[storyMarker.id] || this.createMarker(storyMarker);
+        },
+
+        getLeafletMarker: function(storyMarker) {
+            return this.leafletMarkers[storyMarker.id];
+        },
+
+        mapStoryMarkerToLeafletMarker: function(storyMarker, leafletMarker) {
+            this.leafletMarkers[storyMarker.id] = leafletMarker;
         },
 
         /* Add a leaflet marker and watch the Story marker for changes
@@ -119,10 +127,8 @@ define([
             if (!storyMarker) { return; }
             //Get provides protection against creating more than 1 marker per Story Marker
             var leafletMarker = this.getOrCreateLeafletMarker(storyMarker);
-            this.leafletMarkers[storyMarker] = leafletMarker;
+            this.mapStoryMarkerToLeafletMarker(storyMarker, leafletMarker);
             
-            console.log("Banana: Adding Story marker to Map");
-
             leafletMarker.addTo(this);
             this.watchStoryMarker(storyMarker);
         },
@@ -131,7 +137,7 @@ define([
         */
         removeStoryMarkerFromMap: function (storyMarker) {
             if (!storyMarker) { return; }
-            if (leafletMarkers[storyMarker]) {
+            if (this.getLeafletMarker(storyMarker)) {
                 this.removeLayer(storyMarker);
             }
         },
